@@ -1,4 +1,4 @@
-# ⚡ VulnProbe — XSS & SQL Injection Scanner
+# ⚡ VulnScanner — XSS & SQL Injection Scanner
 
 > A beautiful, dark-themed web security tool that crawls HTML forms and tests for XSS and SQL Injection vulnerabilities using cURL, DOM parsing, and payload injection.
 
