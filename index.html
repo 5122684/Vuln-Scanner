@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"/>
+  <meta name="description" content="XSS & SQL Injection Scanner — A web security tool to detect common vulnerabilities in web forms using payload injection and response analysis."/>
+  <title>VulnProbe — XSS & SQLi Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-grid"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">VulnProbe</span>
+      <span class="logo-badge">BETA</span>
+    </div>
+    <div class="header-right">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="status-text" id="statusText">Ready</span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-pulse">
+        <div class="pulse-ring r1"></div>
+        <div class="pulse-ring r2"></div>
+        <div class="pulse-ring r3"></div>
+        <div class="pulse-center">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M11 8v6M8 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="hero-text">
+        <h1 class="hero-title">Web Vulnerability <span class="gradient-text">Scanner</span></h1>
+        <p class="hero-subtitle">Detect XSS &amp; SQL Injection vulnerabilities by crawling forms and injecting payloads</p>
+        <div class="tech-tags">
+          <span class="tag">cURL</span>
+          <span class="tag">DOM Parsing</span>
+          <span class="tag">Payload Injection</span>
+          <span class="tag">PHP Backend</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scanner Card -->
+    <section class="scanner-section">
+      <div class="card scanner-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon">⚡</span>
+            Target Configuration
+          </div>
+          <div class="disclaimer-badge">⚠ Educational Use Only</div>
+        </div>
+
+        <form id="scanForm" class="scan-form">
+          <div class="input-group">
+            <label for="targetUrl" class="input-label">Target URL</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">🌐</span>
+              <input
+                type="url"
+                id="targetUrl"
+                name="url"
+                class="url-input"
+                placeholder="https://example.com/contact"
+                required
+                autocomplete="off"
+              />
+              <button type="button" class="clear-btn" id="clearBtn" title="Clear">✕</button>
+            </div>
+            <p class="input-hint">Enter the full URL of a page containing HTML forms. Enable <strong>Allow localhost</strong> below to test local/demo pages.</p>
+          </div>
+
+          <div class="options-row">
+            <div class="option-group">
+              <label class="option-label">Scan Types</label>
+              <div class="checkboxes">
+                <label class="checkbox-label" for="scanXss">
+                  <input type="checkbox" id="scanXss" name="scan_xss" value="1" checked/>
+                  <span class="checkbox-custom xss"></span>
+                  <span>XSS Detection</span>
+                </label>
+                <label class="checkbox-label" for="scanSqli">
+                  <input type="checkbox" id="scanSqli" name="scan_sqli" value="1" checked/>
+                  <span class="checkbox-custom sqli"></span>
+                  <span>SQL Injection</span>
+                </label>
+                <label class="checkbox-label" for="allowLocal">
+                  <input type="checkbox" id="allowLocal" name="allow_local" value="1"/>
+                  <span class="checkbox-custom local"></span>
+                  <span>Allow localhost / private IPs</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="option-group">
+              <label class="option-label">Payload Intensity</label>
+              <div class="intensity-selector">
+                <button type="button" class="intensity-btn active" data-level="low" id="intLow">Low</button>
+                <button type="button" class="intensity-btn" data-level="medium" id="intMed">Medium</button>
+                <button type="button" class="intensity-btn" data-level="high" id="intHigh">High</button>
+              </div>
+              <input type="hidden" id="intensityValue" name="intensity" value="low"/>
+            </div>
+
+            <div class="option-group">
+              <label class="option-label">Timeout (sec)</label>
+              <input type="number" id="timeout" name="timeout" value="10" min="5" max="30" class="number-input"/>
+            </div>
+          </div>
+
+          <button type="submit" class="scan-btn" id="scanBtn">
+            <span class="scan-btn-icon">🔍</span>
+            <span class="scan-btn-text">Launch Scan</span>
+            <span class="scan-btn-loader" style="display:none">
+              <span class="spinner"></span>
+              Scanning...
+            </span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Progress Section (hidden initially) -->
+      <div class="card progress-card" id="progressCard" style="display:none">
+        <div class="progress-header">
+          <span class="card-icon">📡</span>
+          <span>Scan Progress</span>
+          <button class="abort-btn" id="abortBtn">Abort</button>
+        </div>
+        <div class="progress-stages" id="progressStages">
+          <div class="stage" id="stage-fetch">
+            <div class="stage-icon pending">◯</div>
+            <div class="stage-info">
+              <div class="stage-name">Fetching Page</div>
+              <div class="stage-desc">Downloading target URL with cURL</div>
+            </div>
+          </div>
+          <div class="stage" id="stage-parse">
+            <div class="stage-icon pending">◯</div>
+            <div class="stage-info">
+              <div class="stage-name">Parsing DOM</div>
+              <div class="stage-desc">Extracting forms and input fields</div>
+            </div>
+          </div>
+          <div class="stage" id="stage-xss">
+            <div class="stage-icon pending">◯</div>
+            <div class="stage-info">
+              <div class="stage-name">XSS Payload Injection</div>
+              <div class="stage-desc">Testing script injection vectors</div>
+            </div>
+          </div>
+          <div class="stage" id="stage-sqli">
+            <div class="stage-icon pending">◯</div>
+            <div class="stage-info">
+              <div class="stage-name">SQL Injection Testing</div>
+              <div class="stage-desc">Probing database error patterns</div>
+            </div>
+          </div>
+          <div class="stage" id="stage-report">
+            <div class="stage-icon pending">◯</div>
+            <div class="stage-info">
+              <div class="stage-name">Generating Report</div>
+              <div class="stage-desc">Compiling findings</div>
+            </div>
+          </div>
+        </div>
+        <div class="progress-bar-wrapper">
+          <div class="progress-bar" id="progressBar" style="width:0%"></div>
+        </div>
+        <div class="progress-log" id="progressLog"></div>
+      </div>
+
+      <!-- Results Section (hidden initially) -->
+      <div id="resultsSection" style="display:none">
+
+        <!-- Summary Cards -->
+        <div class="summary-row" id="summaryRow"></div>
+
+        <!-- Findings -->
+        <div class="card findings-card" id="findingsCard">
+          <div class="card-header">
+            <div class="card-title"><span class="card-icon">🔓</span> Vulnerabilities Found</div>
+            <div class="findings-controls">
+              <button class="filter-btn active" data-filter="all" id="filterAll">All</button>
+              <button class="filter-btn" data-filter="xss" id="filterXss">XSS</button>
+              <button class="filter-btn" data-filter="sqli" id="filterSqli">SQLi</button>
+            </div>
+          </div>
+          <div id="findingsList" class="findings-list"></div>
+        </div>
+
+        <!-- Form Map -->
+        <div class="card" id="formMapCard">
+          <div class="card-header">
+            <div class="card-title"><span class="card-icon">🗺️</span> Discovered Forms</div>
+          </div>
+          <div id="formMapList"></div>
+        </div>
+
+        <!-- Education Panel -->
+        <div class="card edu-card">
+          <div class="card-header">
+            <div class="card-title"><span class="card-icon">📚</span> How These Attacks Work</div>
+          </div>
+          <div class="edu-tabs">
+            <button class="edu-tab active" data-tab="xss" id="eduTabXss">XSS</button>
+            <button class="edu-tab" data-tab="sqli" id="eduTabSqli">SQL Injection</button>
+            <button class="edu-tab" data-tab="defense" id="eduTabDef">Defense</button>
+          </div>
+          <div class="edu-content" id="eduContent">
+            <div class="edu-panel active" id="edu-xss">
+              <h3>Cross-Site Scripting (XSS)</h3>
+              <p>XSS occurs when an attacker injects malicious scripts into web pages viewed by other users. The injected code executes in victims' browsers, potentially stealing session cookies, redirecting users, or capturing keystrokes.</p>
+              <div class="code-block">
+                <div class="code-label">Reflected XSS Example</div>
+                <pre><code><span class="c-tag">&lt;script&gt;</span><span class="c-func">alert</span>(<span class="c-str">'XSS'</span>)<span class="c-tag">&lt;/script&gt;</span>
+<span class="c-tag">&lt;img</span> <span class="c-attr">src=</span><span class="c-str">x</span> <span class="c-attr">onerror=</span><span class="c-str">alert(1)</span><span class="c-tag">&gt;</span>
+<span class="c-comment">// URL: ?name=&lt;script&gt;...&lt;/script&gt;</span></code></pre>
+              </div>
+              <div class="attack-flow">
+                <div class="flow-step">User Input</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">No Sanitization</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step warn">HTML Output</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step danger">Script Executes</div>
+              </div>
+            </div>
+            <div class="edu-panel" id="edu-sqli">
+              <h3>SQL Injection (SQLi)</h3>
+              <p>SQL Injection occurs when user-supplied data is inserted directly into SQL queries without proper escaping. Attackers can bypass authentication, extract sensitive data, modify records, or drop entire tables.</p>
+              <div class="code-block">
+                <div class="code-label">Classic SQLi Example</div>
+                <pre><code><span class="c-comment">-- Input: admin' OR '1'='1</span>
+<span class="c-keyword">SELECT</span> * <span class="c-keyword">FROM</span> users
+<span class="c-keyword">WHERE</span> user=<span class="c-str">'admin'</span> <span class="c-keyword">OR</span> <span class="c-str">'1'</span>=<span class="c-str">'1'</span>
+<span class="c-comment">-- Always TRUE → bypasses login!</span></code></pre>
+              </div>
+              <div class="attack-flow">
+                <div class="flow-step">Malicious Input</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">SQL Query Built</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step warn">Logic Altered</div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step danger">DB Exposed</div>
+              </div>
+            </div>
+            <div class="edu-panel" id="edu-defense">
+              <h3>Defense Strategies</h3>
+              <div class="defense-grid">
+                <div class="defense-item">
+                  <div class="defense-icon">🛡️</div>
+                  <div class="defense-title">Output Encoding</div>
+                  <div class="defense-desc">HTML-encode all user data before rendering. Use <code>htmlspecialchars()</code> in PHP, <code>encodeURIComponent()</code> in JS.</div>
+                </div>
+                <div class="defense-item">
+                  <div class="defense-icon">🔒</div>
+                  <div class="defense-title">Prepared Statements</div>
+                  <div class="defense-desc">Use parameterized queries with PDO or MySQLi. Never concatenate user input into SQL strings.</div>
+                </div>
+                <div class="defense-item">
+                  <div class="defense-icon">📋</div>
+                  <div class="defense-title">Content Security Policy</div>
+                  <div class="defense-desc">Set CSP headers to restrict script sources and prevent inline script execution.</div>
+                </div>
+                <div class="defense-item">
+                  <div class="defense-icon">✅</div>
+                  <div class="defense-title">Input Validation</div>
+                  <div class="defense-desc">Validate and whitelist input types. Reject unexpected characters server-side, not just client-side.</div>
+                </div>
+              </div>
+              <div class="code-block">
+                <div class="code-label">PHP Secure Prepared Statement</div>
+                <pre><code><span class="c-tag">$stmt</span> = <span class="c-tag">$pdo</span>-><span class="c-func">prepare</span>(
+  <span class="c-str">"SELECT * FROM users WHERE email = :email"</span>
+);
+<span class="c-tag">$stmt</span>-><span class="c-func">execute</span>([<span class="c-str">':email'</span> => <span class="c-tag">$email</span>]);</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export -->
+        <div class="export-row">
+          <button class="export-btn" id="exportJson">📄 Export JSON</button>
+          <button class="export-btn" id="exportHtml">📋 Export Report</button>
+          <button class="export-btn secondary" id="newScanBtn">🔄 New Scan</button>
+        </div>
+      </div>
+
+      <!-- Error Section -->
+      <div class="card error-card" id="errorCard" style="display:none">
+        <div class="error-icon">⚠️</div>
+        <div class="error-title" id="errorTitle">Scan Error</div>
+        <div class="error-message" id="errorMessage"></div>
+        <button class="scan-btn" id="retryBtn" style="max-width:200px;margin-top:1rem">Try Again</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>⚠️ <strong>Disclaimer:</strong> VulnProbe is for <strong>educational and authorized testing only</strong>. Only scan systems you own or have explicit written permission to test. Unauthorized scanning may be illegal.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
